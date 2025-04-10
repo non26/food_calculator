@@ -9,3 +9,5 @@
 
 - run unit test
 
+#### How to run docker to see unit test result
+- docker build -f Dockerfile.multistage -t docker-food-cal-test --progress plain --no-cache --target food-calculator-test .

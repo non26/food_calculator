@@ -27,7 +27,7 @@ func (p *duoPairPromotion) ValidatePromotion(orders *order.Orders) bool {
 	return false
 }
 
-func (p *duoPairPromotion) GetDiscount(orders *order.Orders) *big.Float {
+func (p *duoPairPromotion) GetDiscount(orders *order.Orders) (discount *big.Float) {
 	totalDiscount := big.NewFloat(0)
 	for _, pair := range p.duoPair {
 		order, ok := orders.GetOrderBy(pair)
@@ -41,14 +41,18 @@ func (p *duoPairPromotion) GetDiscount(orders *order.Orders) *big.Float {
 	return totalDiscount
 }
 
-func (p *duoPairPromotion) getBundleDiscount(order order.Order) *big.Float {
-	pair := big.NewInt(2)
-	numberOfPairs := new(big.Int).Quo(big.NewInt(int64(order.NumberOfItems)), pair)
-	if numberOfPairs.Cmp(big.NewInt(0)) == 0 {
+func (p *duoPairPromotion) getBundleDiscount(order order.Order) (discount *big.Float) {
+	if order.NumberOfItems == 0 || order.NumberOfItems == 1 {
 		return big.NewFloat(0)
 	}
+	var numberOfItemsInPairs *big.Float
 	discountPercentage := big.NewFloat(0.05)
-	numberOfItemsInPairs := new(big.Float).SetFloat64(float64(numberOfPairs.Int64() * pair.Int64()))
+	quotient := order.NumberOfItems % 2
+	if quotient == 1 {
+		numberOfItemsInPairs = new(big.Float).SetFloat64(float64(order.NumberOfItems - 1))
+	} else {
+		numberOfItemsInPairs = new(big.Float).SetFloat64(float64(order.NumberOfItems))
+	}
 	totalPriceOfPairs := new(big.Float).Mul(order.UnitPrice, numberOfItemsInPairs)
 	return new(big.Float).Mul(totalPriceOfPairs, discountPercentage)
 }
